@@ -2,25 +2,8 @@
   <div id="app">
     <input @click="pickFile" v-model="imageName" placeholder="SELECT IMAGE" />
     <input type="file" style="display: none;" ref="image" accept="image/*" @change="onFilePicked" />
+    <textarea v-model="message"></textarea>
     <button @click="upload">アップロード</button>
-
-
-    <!-- <img src="./assets/logo.png">
-    <h1>{{ msg }}</h1>
-    <h2>Essential Links</h2>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank">Twitter</a></li>
-    </ul>
-    <h2>Ecosystem</h2>
-    <ul>
-      <li><a href="http://router.vuejs.org/" target="_blank">vue-router</a></li>
-      <li><a href="http://vuex.vuejs.org/" target="_blank">vuex</a></li>
-      <li><a href="http://vue-loader.vuejs.org/" target="_blank">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank">awesome-vue</a></li>
-    </ul> -->
   </div>
 </template>
 
@@ -35,15 +18,20 @@ export default {
       photo: null,
       photURL: null,
       dialog: false,
+      message: "メッセージ",
       imageName: "",
       imageURL: "",
-      imageFile: ""
+      imageFile: "",
+      latitude: "",
+      longitude: "",
+
     }
   },
   methods: {
     // 画像取得処理
     pickFile() {
       this.$refs.image.click();
+      this.getPosition();
     },
     onFilePicked(e) {
       let files = e.target.files;
@@ -65,7 +53,7 @@ export default {
       }
     },
     // 画像アップロード処理
-    upload: function() {
+    upload() {
       // Storageオブジェクト作成
       let storageRef = firebase.storage().ref();
       // ファイルパス設定
@@ -74,11 +62,25 @@ export default {
       console.log("Uploading…");
       incidentsRef.put(this.imageFile).then(snapshot => {
         snapshot.ref.getDownloadURL().then(downloadURL => {
-          db.collection("images").add({ downloadURL });
+          db.collection("images").add({
+            message: this.message,
+            latitude: this.latitude,
+            longitude: this.longitude,
+            downloadURL,
+            });
         });
       });
       console.log("Done.");
-    }
+    },
+    getPosition() {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        this.latitude = pos.coords.latitude
+        this.longitude = pos.coords.longitude
+
+        console.log("get position")
+        console.log(this.latitude, this.longitude)
+      });
+    },
   },
   components: {}
 };
